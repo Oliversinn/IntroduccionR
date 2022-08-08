@@ -1,0 +1,88 @@
+---
+title: "Introducción a R y RStudio"
+Author: "Oliver Mazariegos"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_sections: false
+    toc: true
+    fig_width: 8
+    fig_height: 6
+    theme: cosmo
+    highlight: tango
+---
+
+# Instalación
+
+Es importante que se descarguen e instalen los programas con un usuario que tenga los permisos necesarios para hacerlo.
+
+## R
+
+Visitar el sitio oficial [https://cran.r-project.org/](https://cran.r-project.org/) y descargar la última versión de R para tu sistema operativo.
+
+## RStudio
+
+Visitar el sitio oficial [https://www.rstudio.com/products/rstudio/download/](https://www.rstudio.com/products/rstudio/download/) y descargar la última versión gratuita de escritorio de RStudio (RStudio Desktop Free).
+
+# Introducción a RStudio
+
+RStudio es una interfaz (GUI) amigable para usar R. Podríamos ver a R como el lenguaje de programación que se encarga de todo y RStudio como un programa que nos ayuda a utilizar R y visualizar sus resultados. Por defecto RStudio muestra cuatro paneles rectangulares.
+
+### Source Pane (Panel de fuente)
+
+Este panel por defecto esta en la parte superior izquierda de RStudio, este espacio es para editar, correr o guardar los *scripts* (archivos de programa). Los scripts contienen los comandos que se quieren ejecutar. Además, en este mismo panel también se pueden mostrar las bases de datos para verlas.
+
+### Console Pane (Panel de consola)
+
+Por defecto la consola se mostrara en la parte inferior izquierda de RStudio, en la consola es donde R (el lenguaje de programación) está ejecutando. En la consola es donde realmente se ejecutan los comandos y se generan los distintos resultados de ellos mismos. Entre los resultados también se podrán mostrar mensajes de errores (error) o alertas (warning). Uno puede ejecutar comandos directamente desde la consola, pero estos no se guardaran como los comandos que se corren desde algún script.
+
+### Environment Pane (Panel de ambiente)
+
+El panel de ambiente se encuentra por defecto en la parte superior derecha, este panel es utilizado para ver las variables (objetos) del ambiente en la sesión actual de R. Estas variables pueden ser bases de datos, vectores, listas, números, letras, etc. Se puede dar click en la flecha al lado de cualquier base de datos (data frames) para ver las variables que contiene.
+
+### Plots, Viewer, Packages, Help Pane (Panel de gráficas, visualizador, paquetes y ayuda)
+
+En la parte inferior derecha hay un panel com multiples pestañas. Al generar gráficas y mapas se podrán visualizar en la pestaña **Plot**. Los resultados HTML de comandos se mostraran en la pestaña **Viewer**. En la pestaña **Packages** se permite ver, instalar, actualizar, eliminar, cargar/descargar paquetes de R. En **Help** podremos ver la documentación de los comandos de R para ayudarnos a ejecutarlos.
+
+### Cheat Sheet
+
+La pueden encontrar en: [https://raw.githubusercontent.com/rstudio/cheatsheets/main/rstudio-ide.pdf](https://raw.githubusercontent.com/rstudio/cheatsheets/main/rstudio-ide.pdf)
+
+![](Introduccio%CC%81n%20a%20R%20y%20RStudio%20c75f46ac685148948b6f7a115224b5fc/Untitled.png)
+
+![](Introduccio%CC%81n%20a%20R%20y%20RStudio%20c75f46ac685148948b6f7a115224b5fc/Untitled%201.png)
+
+### Configuraciones
+
+![](Introduccio%CC%81n%20a%20R%20y%20RStudio%20c75f46ac685148948b6f7a115224b5fc/Untitled%202.png)
+
+![](Introduccio%CC%81n%20a%20R%20y%20RStudio%20c75f46ac685148948b6f7a115224b5fc/Untitled%203.png)
+
+![](Introduccio%CC%81n%20a%20R%20y%20RStudio%20c75f46ac685148948b6f7a115224b5fc/Untitled%204.png)
+
+Al momento de hacer un cambio, siempre hacer click en **Apply**
+
+### Atajos
+
+| Windows/Linux | Mac | Acción |
+| --- | --- | --- |
+| Ctrl+s | Cmd+s | Guardar (script) |
+| Tab | Tab | Auto-completar |
+| Ctrl + Enter | Cmd + Enter | Ejecutar línea(s) actual(es)/selección de código |
+| Ctrl + Shift + C | Cmd + Shift + c | comment/uncomment the highlighted lines |
+| Ctrl + Shift + m | Cmd + Shift + m | Insertar %>% |
+| Ctrl + l | Cmd + l | Limpiar la consola de R |
+| Ctrl + Alt + b | Cmd + Option + b | Ejecutar desde el inicio hasta la línea actual |
+| Ctrl + Alt + t | Cmd + Option + t | Ejecute la sección de código actual (R Markdown) |
+| Ctrl + Alt + i | Cmd + Shift + r | Insertar fragmento de código (en R Markdown) |
+| Ctrl + Alt + c | Cmd + Option + c | Ejecutar fragmento de código actual (R Markdown) |
+| Flechas arriba/abajo en consola | Igual | Alternar entre los comandos ejecutados recientemente |
+| Shift + flechas arriba/abajo en script | Igual | Seleccione varias líneas de código |
+| Ctrl + f | Cmd + f | Buscar y reemplazar en el script actual |
+| Ctrl + Shift + f | Cmd + Shift + f | Buscar en archivos (buscar/reemplazar en muchos scripts) |
+| Alt + l | Cmd + Option + l | Doblar código seleccionado |
+| Shift + Alt + l | Cmd + Shift + Option+l | Desplegar código seleccionado |
+
+# Fuentes
+
+[https://epirhandbook.com/en/r-basics.html#rstudio](https://epirhandbook.com/en/r-basics.html#rstudio)

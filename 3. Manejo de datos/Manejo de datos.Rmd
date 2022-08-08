@@ -1,0 +1,1006 @@
+---
+title: "Manejo de datos"
+Author: "Oliver Mazariegos"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_sections: false
+    toc: true
+    fig_width: 8
+    fig_height: 6
+    theme: cosmo
+    highlight: tango
+---
+
+```{css, echo=FALSE}
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+```
+
+En esta sección exploraremos los pasos comunes para el proceso de limpieza de datos. También exploraremos el uso de funciones esenciales para el manejo de los datos en R. Es importante mencionar que las bases de datos son Data Frames en R y que estas están compuestas de filas y columnas. Las columnas de la base de datos también se les llama variables.
+
+# Importar datos
+
+En la sección anterior aprendimos a importar bases de datos desde archivos CSV. Pero también podrían ser archivos XLSX, TSV, etc. Para no tener que preocuparnos de la extensión y el formato de nuestra base de datos utilizaremos la función `import()` del paquete `rio`. Descargar la siguiente base de datos:
+
+[linelist_raw.xlsx](Manejo%20de%20datos%207058ded34cce44e5a14a21c6464ef75d/linelist_raw.xlsx)
+
+> La base de datos linelist_raw es una base de datos ficticia de un brote de Ebola obtenido de: [https://epirhandbook.com/en/download-handbook-and-data.html?q=linelist#case-linelist](https://epirhandbook.com/en/download-handbook-and-data.html?q=linelist#case-linelist)
+> 
+
+```{r}
+# Importar datos ----
+# Cargar pacman
+library(pacman)
+# Cargar rio
+pacman::p_load(rio)
+
+# Cargar base de datos en formato excel
+ebola = import("../linelist_raw.xlsx")
+head(ebola) # output: Data Frame de brote de ebola
+
+# Cargar base de datos en formato CSV
+cancer = read.csv('../cancer_data.csv')
+head(cancer) # output: un data frame con estadísticas del cáncer
+```
+
+Es importante mencionar que el paquete `rio` utiliza varios paquetes individuales para cada tipo de formato de base de datos y nos los simplifica en la función `import()`. Para saber más al respecto visitar su [documentación](https://cran.r-project.org/web/packages/rio/vignettes/rio.html).
+
+# Análisis inicial
+
+Lo primero que se debe realizar con una base de datos es hacer un análisis superficial de la base de datos. Por ejemplo la cantidad de variables, el tipo de variables, que posibles valores tienen las variables, etc. Para eso podemos utilizar la función del paquete **`base`, `summary()`.**
+
+```{r}
+# Análisis inicial ----
+# Resumen de base de datos ----
+# Resumen de base de datos utilizando summary()
+summary(cancer) # output: resumen de las variables de cancer
+
+# EJERCICIO: Haga un resumen de la base de datos de ebola
+```
+
+Existe un paquete llamado `skimr` que tiene una función llamada `skim()` que nos permite hacer un resumen más completo y elegante. 
+
+```{r}
+# Resumenes utilizando skim
+pacman::p_load(skimr)
+# Resumen de base de datos utilizando skim()
+skim(cancer) # output: resumen de las variables de cancer
+
+# EJERCICIO: Haga un resumen de la base de dato de ebola utilizando skim
+```
+
+# Funciones utiles
+
+## dim()
+
+De los datos iniciales más útiles para conocer la base de datos con la que estamos tratando son sus dimensiones. Para eso se utiliza la función `dim()`.
+
+ 
+
+```{r}
+## Dimensiones de un Data Frame ----
+# La función dim devuelve #FILAS #COLUMNAS
+dim(cancer) # output: 35 11
+
+# EJERCICIO: Determine la dimensión de ebola
+```
+
+## ncol()
+
+Como contrapartida podemos saber la cantidad de columnas utilizando `ncol()` sin necesidad de saber la cantidad de filas
+
+```{r}
+## Cantidad de columnas de un Data Frame ----
+# La función ncol() devuelve el #COLUMNAS
+ncol(cancer)
+```
+
+## nrow()
+
+De la misma manera que `ncol()` nos dice la cantidad de columnas, `nrow()` nos devuelve la cantidad de filas.
+
+```{r}
+## Cantidad de filas de un Data Frame ----
+# La función nrow() devuelve el #FILAS
+# EJERCICIO: calcule la cantidad de filas de cáncer
+```
+
+## colnames()
+
+En muchas ocasiones vamos a querer saber el nombre de las columnas de un Data Frame y en algunas otras modificar dichos nombres. Para eso podemos utilizar `colnames()`.
+
+```{r}
+## Nombres de columnas de un Data Frame ----
+# colnames recibe como parámetro un Data Frame
+colnames(cancer) # output: nombre de las 11 columnas de cáncer
+variables_cancer = colnames(cancer)
+variables_cancer # output: nombre de las 11 columnas de cáncer
+
+# con colnames también podemos cambiar el nombre de las variables utilizando []
+colnames(cancer)[1] = 'tipo'
+colnames(cancer) # output: nombre de las 11 columnas, con la primera renombrada a 'tipo'
+# También nos permite acceder al nombre de una columna en específica con []
+colnames(cancer)[1] # output: tipo
+# También nos permite cambiar todos los nombres al mismo tiempo
+# para esto necesitamos indicar un vector con longitud igual al
+# número de columnas del Data Frame
+colnames(cancer) = variables_cancer
+colnames(cancer) # output: nombre original de las 11 columnas de cáncer
+
+# EJERCICIO: Traduzca al español las variables de cáncer y asignárselas a cáncer
+
+# EJERCICIO: Vuelva el nombre de las variables de cáncer a su nombre original
+
+```
+
+## unique()
+
+En múltiples ocasiones vamos a necesitar ver los posibles valores que contiene una variable. Para esto utilizaremos la función `unique()` . Saber los posibles valores nos puede ser útil en la limpieza de datos para identificar que no hayan errores de escritura en los posibles valores de una variable, o en nuestros análisis cuando queremos aplicar filtros o condiciones dependiendo de algún valor en específico.
+
+```{r}
+## Valores únicos ----
+# Para determinar los valores únicos utilizamos unique()
+unique(ebola$hospital) # output: 14 valores únicos para la variable hospital
+```
+
+## table()
+
+La función table nos permite cuantificar la frecuencia de las observaciones de una variable categórica.
+
+```{r}
+## Frecuencias de variables categóricas ----
+# La función table() nos cuenta las ocurrencias de variables categóricas
+table(ebola$outcome) # output: Death = 2898, Recover = 2213
+
+# EJERCICIO: Haga que el comando anterior tome en cuenta los NA
+#            hint: pida ayuda utilizando ?
+
+# EJERCICIO: Haga otro recuenta de ocurrencias de otra variable de ebola
+
+```
+
+## prop.table()
+
+Gracias a `table()` tenemos las frecuencias de las posibles ocurrencias de alguna variable categórica, pero aveces necesitamos esa información en términos de proporción. Para eso tenemos la función `prop.table()`.
+
+```{r}
+## Proporciones de variables categóricas ----
+# Para generar las proporciones debemos primero crear una tabla de frecuencias
+frecuencias_outcome = table(ebola$outcome)
+# Como segundo paso, pasamos la tabla como parámetro de prop.table()
+prop.table(frecuencias_outcome) # output: Death = 0.5670123, Recover = 0.4329877
+
+# EJERCICIO: Realizar una tabla de proporción de otra variable de ebola 
+#.           reto: en solo una línea de código
+```
+
+## Otras funciones
+
+Revisar la tabla de **Ejemplo de funciones existentes** de la sección anterior para más funciones útiles en el análisis de datos. Utiliza **`?`** si necesitas ayuda con alguna de ellas.
+
+# Limpieza y manejo de datos
+
+Para el manejo de datos utilizaremos principalmente las funciones del paquete `dplyr` , el cual contiene muchas funciones utiles para manipular las bases de datos. Estas funciones se ejecutan de manera secuencial, y el resultado de una función se pasa en secuencia a la siguiente (*pipe*) utilizando el operador `%>%`. Esta secuencia de funciones siempre comienza con la base de datos inicial. 
+
+Antes de la limpieza de datos es importante que hayamos hecho una pequeña exploración de datos como fue descrito en las secciones anteriores.
+
+## clean_names()
+
+La función `clean_names()` es del paquete `janitor`, esta función estandariza los nombres de las columnas de la siguiente manera.
+
+- Convierte todos los nombres para que solo contengan guiones bajos, números y letras
+- Los caracteres acentuados se transliteran a ASCII (por ejemplo, la ó con tilde se convierte en "o", la "ñ" española se convierte en "n")
+- La preferencia de uso de mayúsculas para los nuevos nombres de columna se puede especificar usando `case =` argumento ("snake" es el valor predeterminado, las alternativas incluyen “sentence”, “title”, “small_camel”...)
+- Puede especificar reemplazos de nombres específicos proporcionando un vector a `replace =` argumento (por ejemplo, replace = c(onset = "date_of_onset"))
+
+```{r}
+# Limpieza de datos ----
+# Cargamos paquetes a utilizar
+pacman::p_load(janitor, dplyr)
+
+## Nombres de variables ----
+colnames(ebola) # output: nombres de variables de ebola
+### clean_names() ----
+# utilizaremos %>% para mandar en secuencia ebola
+ebola_nombres = ebola %>%
+	clean_names() # Aplicamos la función a lo mandado en secuencia (en este caso el DF ebola)
+
+colnames(ebola_nombres) # output: nombres de ebola estandarizados
+```
+
+## rename()
+
+También podemos re-nombrar las variables de manera manual utilizando la función `rename()` . Esta función utiliza la nomenclatura NUEVONOMBRE = VIEJONOMBRE de la siguiente manera.
+
+```{r}
+### rename() ----
+# utilizamos %>% para mandar en secuencia ebola_nombres
+ebola_nombres_renombre = ebola_nombres %>%
+	# Renombramos de manera manual
+	# NUEVONOMBRE          # VIEJO NOMBRE
+	rename(
+		date_infection       = infection_date,
+    date_hospitalisation = hosp_date,
+    date_outcome         = date_of_outcome
+	)
+
+# También se puede renombrar utilizando la posición de la columna
+ebola_nombres_renombre = ebola_nombres %>%
+	# Renombramos de manera manual
+	# NUEVONOMBRE          # POSICIÓN
+	rename(
+		date_infection       = 3,
+    date_hospitalisation = 5,
+    date_outcome         = 6
+	)
+
+# El poder de %>% es que podemos secuenciar las funciones
+# por lo que podríamos haber realizado lo siguiente
+# utilizaremos %>% para mandar en secuencia ebola
+ebola_nombres_renombre = ebola %>%
+	# Aplicamos la función a lo mandado en secuencia (en este caso el DF ebola)
+	clean_names() %>% # Mandamos en secuencia el resultado de clean_names
+	# Renombramos de manera manual
+	# NUEVONOMBRE          # VIEJO NOMBRE
+	rename(
+		date_infection       = infection_date,
+    date_hospitalisation = hosp_date,
+    date_outcome         = date_of_outcome
+	)
+```
+
+Además de aprender a re-nombrar de manera manual el nombre de las variables, también aprendimos a mandar en secuencia el resultado de una función a otra. Esto es de mucha utilidad ya que esto nos permite encadenar la cantidad de operaciones que necesitemos sobre un Data Frame.
+
+## select()
+
+La función `select()` nos permite seleccionar solo algunas variables de un Data Frame.
+
+```{r}
+# Seleccionar variables ----
+# pasaremos a select como argumentos la variables de ebola_limpia que queremos utilizar
+ebola_fechas = ebola_nombres %>% # Mandamos ebola_limpia en secuencia
+	select(
+		# Agregamos las variables que queremos seleccionar separadas por coma (,)
+		infection_date,
+		date_onset,
+		hosp_date,
+		date_of_outcome,
+	)
+ebola_fechas # output: El Data Frame de ebola solo con las variables indicadas
+
+# EJERCICIO: Encadene el proceso de ebola_nombres como en el ejemplo de rename()
+
+# select() también nos permite renombrar las variables al seleccionarlas
+ebola_fechas = ebola_nombres %>% # Mandamos ebola_limpia en secuencia
+	select(
+		# Agregamos las variables que queremos seleccionar separadas por coma (,)
+		# NUEVONOMBRE        # VIEJO NOMBRE
+		date_infection       = infection_date,
+		date_onset,
+    date_hospitalisation = hosp_date,
+    date_outcome         = date_of_outcome
+	)
+ebola_fechas # output: El Data Frame de ebola solo con las variables indicadas y renombradas
+
+# select también define el orden en que están las variables
+ebola_fechas = ebola_nombres %>% # Mandamos ebola_limpia en secuencia
+	select(
+		date_of_outcome,
+		hosp_date,
+		date_onset,
+		infection_date,
+	)
+ebola_fechas # output: El Data Frame de ebola solo con las variables indicadas en el orden inverso al anterior ejemplo
+
+# Si utilizamos el símbolo - podemos des seleccionar variables
+ebola_fechas_deseleccion = ebola_fechas %>%
+	select(
+		-date_onset
+	)
+ebola_fechas_deseleccion # output: El Data Frame del ejemplo anterior sin la variable date_onset
+```
+
+Para potenciar `select()` podemos utilizar funciones del paquete `tidyselect` el cual nos permite hacer selecciones más elaboradas. Estas son algunas de las funciones útiles de `tidyselect`.
+
+```{r}
+# Seleccionar dada una condición
+ebola %>% # se envía en secuencia ebola
+	select(where(is.numeric)) %>% # se seleccionan las variables que son numéricas con la función is.numeric
+	colnames() # se imprimen los nombres de columnas para ver cuales fueron seleccionadas
+
+# EJERCICIO: seleccione de ebola las variables que son de tipo character
+
+# Seleccionar columnas que contengan una cadena de caracteres en su nombre
+ebola %>% # se envía en secuencia ebola
+	select(contains("date")) %>% # se seleccionan las variables que contengan "date" en su nombre
+	colnames() # se imprimen los nombres de columnas para ver cuales fueron seleccionadas
+
+# Seleccionar columnas si es que existan
+ebola %>% # se envía en secuencia ebola
+	select(any_of(c("date onset", "pais", "departamento"))) %>% # se seleccionan las variables que contengan "date" en su nombre
+	colnames() # se imprimen los nombres de columnas para ver cuales fueron seleccionadas
+```
+
+- Funciones de `tidyselect`
+    - `everything()` - todas las columnas
+    - `last_col()` - la última columna
+    - `where()` - aplica una función a todas las columnas y selecciona aquellas que son `TRUE`
+    - `contains()` - columnas que contienen un string
+        - ejemplo: `[select(contains("time"))](https://dplyr.tidyverse.org/reference/select.html)`
+    - `starts_with()` - coincide con un prefijo especificado
+        - ejemplo: `[select(starts_with("date_"))](https://dplyr.tidyverse.org/reference/select.html)`
+    - `ends_with()` - coincide con un sufijo especificado
+        - ejemplo: `[select(ends_with("_post"))](https://dplyr.tidyverse.org/reference/select.html)`
+    - `any_of()` - selecciona la columna si tiene alguna coincidencia pero no devuelve ningún error si no encuentra alguna
+        - ejemplo: `[select(any_of(date_onset, date_death, cardiac_arrest))](https://dplyr.tidyverse.org/reference/select.html)`
+
+## distinct()
+
+Muchas veces nos toparemos con bases de datos que tienen registros duplicados, para de-duplicar se utiliza la función `distinct()`.
+
+```{r}
+# De-duplicación ----
+nrow(ebola) # output: 6611
+nrow(ebola %>% distinct()) # output: 6609
+```
+
+Enlazaremos las funciones que hemos aprendido hasta el momento.
+
+```{r}
+ebola_limpia = ebola %>%
+	# Aplicamos la función a lo mandado en secuencia (en este caso el DF ebola)
+	clean_names() %>% # Mandamos en secuencia el resultado de clean_names
+	# Renombramos de manera manual
+	# NUEVONOMBRE          # VIEJO NOMBRE
+	rename(
+		date_infection       = infection_date,
+    date_hospitalisation = hosp_date,
+    date_outcome         = date_of_outcome
+	) %>%
+	# Seleccionamos variables
+	select(
+		-x28, # Removemos variable x28
+		-merged_header # Removemos variable merged_header
+	) %>%
+	distinct() # De-duplicamos los registros
+```
+
+## mutate()
+
+Con `mutate()` podemos crear una nueva columna o editar alguna columna existente. La sintaxis que se utiliza con `mutate()` es la siguiente `mutate(nueva_columna = valor de columna)`.
+
+```{r}
+# Transformación de columnas ----
+## mutate() ----
+# Agregar una nueva columna
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		nueva_columna = 100 # Creamos una variable llamada nueva_columna con 100 como valor
+	)
+ebola_mutate$nueva_columna # output: vector con solo 100
+
+# Podemos referenciar otra columna para hacer cálculos
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		wt_lb = wt_kg * 2.5 # Creo una variable de peso en libras a partir del peso en kilo gramos
+	)
+ebola_mutate$wt_lb # output: peso en libras de todos los casos
+
+# EJERCICIO: cree una variable del indice de masa corporal (BMI por sus siglas en ingles)
+#            formula: BMI = kg/m^2
+
+# Podemos convertir variables al formato más conveniente
+# Cuando hicimos un resumen de ebola, vimos que las fechas no eran Date
+# y que la edad era character en lugar de numeric. Para crear o modificar
+# varias variables con mutate se separan con coma (,)
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		date_infection = as.Date(date_infection), # as.Date() es una función que nos permite convertir una variable a tipo Date
+		date_onset = as.Date(date_onset),
+		date_hospitalisation = as.Date(date_hospitalisation),
+		date_outcome = as.Date(date_outcome),
+		age = as.numeric(age),
+	)
+skim(ebola_mutate) # output: nuestras variables ya serán del tipo de dato especificado
+
+# Como vimos en los ejemplos anteriores, mutate puede utilizar funciones también
+# La edad normalizada
+ebola_mutate = ebola_mutate %>%
+	mutate(age_norm = age / mean(age, na.rm = T)) # mean() es la función de media
+ebola_mutate$age_norm # output: la edad normalizada
+
+```
+
+### across()
+
+También podemos modificar múltiples columnas al mismo tiempo con la función `across()` dentro de `mutate()`
+
+```{r}
+### across() ----
+# across() recibe como parámetros las columnas (.cols) y la función (.fns) que se les aplicara
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		across(.cols = c(date_infection, date_onset, date_hospitalisation, date_outcome), .fns = as.Date),
+		age = as.numeric(age)
+	)
+skim(ebola_mutate) # output: nuestras variables ya serán del tipo de dato especificado
+
+# incluso across() comprende las funciones de tidyselect
+# EJERCICIO: en el ejemplo anterior no especifique todas las columnas de fechas,
+#            utilicé alguna función de tidyselect para seleccionarlas todas.
+#            hint: regrese a la sección de select()
+```
+
+Unifiquemos lo que llevamos hasta el momento.
+
+```{r}
+ebola_limpia = ebola %>%
+	# Aplicamos la función a lo mandado en secuencia (en este caso el DF ebola)
+	clean_names() %>% # Mandamos en secuencia el resultado de clean_names
+	# Renombramos de manera manual
+	# NUEVONOMBRE          # VIEJO NOMBRE
+	rename(
+		date_infection       = infection_date,
+    date_hospitalisation = hosp_date,
+    date_outcome         = date_of_outcome
+	) %>%
+	# Seleccionamos variables
+	select(
+		-x28, # Removemos variable x28
+		-merged_header # Removemos variable merged_header
+	) %>% 
+	distinct() %>% # De-duplicamos registros
+	mutate(
+		bmi = wt_kg / (ht_cm/100)^2 # Creamos una variable
+	) %>%
+	mutate(
+		# Cambiamos el tipo de dato de variables
+		across(.cols = c(date_infection, date_onset, date_hospitalisation, date_outcome), .fns = as.Date),
+		age = as.numeric(age)
+	)
+```
+
+### recode()
+
+La función `recode()` nos permite re-codificar una columna con valores específicos. Utilicemos como ejemplo la variable `hospital` de `ebola_limpia`.
+
+```{r}
+### recode() ----
+# recode() nos permite re-codificar una variable. Esto nos permite estandarizar una variable
+unique(ebola_limpia$hospital) # output: valores únicos de hospital con muchas opciones mal escritas
+ebola_mutate = ebola_limpia %>% 
+  mutate(hospital = recode(hospital,
+                     # sintaxis:    VIEJO = NUEVO
+                      "Mitylira Hopital"  = "Military Hospital",
+                      "Mitylira Hospital" = "Military Hospital",
+                      "Military Hopital"  = "Military Hospital",
+                      "Port Hopital"      = "Port Hospital",
+                      "Central Hopital"   = "Central Hospital",
+                      "other"             = "Other",
+                      "St. Marks Maternity Hopital (SMMH)" = "St. Mark's Maternity Hospital (SMMH)"
+                      ))
+unique(ebola_mutate$hospital) # output: valores únicos de hospital ya estandarizados
+
+# EJERCICIO: re-codificar gender a Male y Female
+```
+
+### replace()
+
+Existen otras opciones para re-codificar utilizando condiciones lógicas. Para eso existen las funciones `replace()`, `ifelse()`, `if_else()` y `case_when()`. La función `replace()` es una función de `base` que utiliza una condición para especificar las filas que modificara. Su sintaxis es `replace(columna_a_cambiar, condicion, nuevo valor)`.
+
+```{r}
+### replace() ----
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		gender = replace(gender, case_id == "2195", "Female") # Re-codificamos por la condición que el case_id sea 2195
+	)
+ebola_mutate %>%
+	filter(case_id == "2195") %>%
+	select(gender) # otuput: Female
+```
+
+### ifesle() y if_else()
+
+Las funciones `ifelse()` y `if_else()` son funciones que resumen el uso de if…else en R. La diferencia entre ellas es que `if_else()` está diseñada para poder manejar valores de tipo `Date`. Su sintaxis es `ifelse(condicion, valor si la condicion es TRUE, valor si la condicion es FALSE)`.
+
+```{r}
+### ifelse() ----
+# utilizaremos la variable source para crear una variable source_known
+# esta variable tendrá known si tiene algún valor y uknown si no lo tiene
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		source_known = ifelse(!is.na(source), "known", "unknown") # is.na() devuelve TRUE si el valor es NA
+																															# el operador ! niega is.na()
+	)
+table(ebola_mutate$source_known) # output: known = 4286, unknown = 2323
+
+### if_else() ----
+# Crearemos una variable date_death si el outcome es Death
+# utilizamos if_else() porque el nuevo valor es tipo Date
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		date_death = if_else(outcome == "Death", date_outcome, NA_real_) # NA_real_ se usa para asignar NA a variables de tipo Date
+	)
+```
+
+### case_when()
+
+Cuando se necesitan comprobar muchas condiciones (if… else if… else if… else) se utiliza `case_when()`. Su sintaxis es la siguiente `case_when(condicion ~ valor si se cumple la condicion)`.
+
+```{r}
+### case_when() ----
+# En age tenemos edades en años y en meses (age_unit)
+# utilizaremos case_when para volverlas todas a años
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		# age_years sera la variable con las edades en años
+		age_years = case_when(
+			age_unit == "years"  ~ age,       # cuando la edad esta en years, utilizamos age
+      age_unit == "months" ~ age/12,    # cuando la edad esta en months, dividimos age/12 para convertirlo a años
+      is.na(age_unit)      ~ age,       # si no se especifica la unidad, asumimos que está en años
+      TRUE                 ~ NA_real_   # en cualquier otra circunstancia, asignamos NA
+		)
+	)
+
+# EJERCICIO: re-codifique hospital con case_when() en vez de recode()
+```
+
+### replace_na()
+
+Anteriormente ya hemos trabajado con `NA` , estos valores representan a los valores faltantes. Ya hemos utilizado la función `is.na()` para verificar si algún valor es `NA` . Pero también existen otras funciones útiles para tratar con los `NA` como `replace_na()` del paquete `tidyr` que reemplaza el valor de una variable si su valor es `NA` específicamente.
+
+```{r}
+### replace_na() ----
+p_load(tidyr) # cargamos el paquete tidyr
+unique(ebola_limpia$hospital) # output: los valores posibles de hospital incluyendo NA
+ebola_mutate = ebola_limpia %>%
+	mutate(
+		hospital = replace_na(hospital, "Missing") # Reemplaza NA a Missing
+	)
+unique(ebola_mutate$hospital) # output: los valores posibles de hospital sin NA y con Missing
+```
+
+### na_if()
+
+En algunas ocasiones en específico se necesita hacer lo inverso, convertir un valor dada una condición a `NA` . Para eso se utiliza `na_if()`.
+
+```{r}
+### na_if() ----
+unique(ebola_mutate$hospital) # output: los valores posibles de hospital sin NA y con Missing
+ebola_mutate = ebola_mutate %>%
+	mutate(
+		hospital = na_if(hospital, "Missing") # Reemplaza Missing a NA
+	)
+unique(ebola_mutate$hospital) # output: los valores posibles de hospital incluyendo NA
+```
+
+### na.rm
+
+También es importante mencionar que muchas funcione matemáticas devolverán `NA` si algún valor del vector es `NA` por lo que muchas funciones tiene el parámetro `na.rm` el cual hay que asignarlo a `TRUE` para que no tome en consideración los valores con `NA`.
+
+```{r}
+### na.rm
+# Calcular el promedio de la variable lat
+mean(ebola_limpia$lat) # output: NA
+mean(ebola_limpia$lat, na.rm = TRUE) # output: 8.469682
+```
+
+Unifiquemos lo que llevamos hasta el momento.
+
+```{r}
+ebola_limpia = ebola %>%
+	# Aplicamos la función a lo mandado en secuencia (en este caso el DF ebola)
+	clean_names() %>% # Mandamos en secuencia el resultado de clean_names
+	# Renombramos de manera manual
+	# NUEVONOMBRE          # VIEJO NOMBRE
+	rename(
+		date_infection       = infection_date,
+    date_hospitalisation = hosp_date,
+    date_outcome         = date_of_outcome
+	) %>%
+	# Seleccionamos variables
+	select(
+		-x28, # Removemos variable x28
+		-merged_header # Removemos variable merged_header
+	) %>% 
+	distinct() %>% # De-duplicamos registros
+	mutate(
+		bmi = wt_kg / (ht_cm/100)^2 # Creamos una variable
+	) %>%
+	mutate(
+		# Cambiamos el tipo de dato de variables
+		across(.cols = c(date_infection, date_onset, date_hospitalisation, date_outcome), .fns = as.Date),
+		age = as.numeric(age)
+	) %>%
+	mutate(
+		hospital = recode(hospital,
+      # sintaxis:    VIEJO = NUEVO
+      "Mitylira Hopital"  = "Military Hospital",
+      "Mitylira Hospital" = "Military Hospital",
+      "Military Hopital"  = "Military Hospital",
+      "Port Hopital"      = "Port Hospital",
+      "Central Hopital"   = "Central Hospital",
+      "other"             = "Other",
+      "St. Marks Maternity Hopital (SMMH)" = "St. Mark's Maternity Hospital (SMMH)"
+     )
+	) %>%
+	mutate(
+		# age_years sera la variable con las edades en años
+		age_years = case_when(
+			age_unit == "years"  ~ age,       # cuando la edad esta en years, utilizamos age
+      age_unit == "months" ~ age/12,    # cuando la edad esta en months, dividimos age/12 para convertirlo a años
+      is.na(age_unit)      ~ age,       # si no se especifica la unidad, asumimos que está en años
+      TRUE                 ~ NA_real_   # en cualquier otra circunstancia, asignamos NA
+		)
+	) %>%
+	mutate(
+		hospital = replace_na(hospital, "Missing")
+	)
+
+# EJERCICIO: Condensar aun más el código
+```
+
+## add_row()
+
+Podemos agregar una fila utilizando `add_row()`, esta función recibe como argumentos los nombres de las variables y sus valores. Si alguna variable no es especificada se le asignará `NA`.
+
+```{r}
+# Agregar una fila ----
+nrow(ebola_limpia) # output: 6609
+ebola_add_row = ebola_limpia %>%
+	add_row( # Agregamos una nueva fila con add_row()
+		#     Variable = Valor
+    case_id        = "abc",
+    generation     = 4,
+    date_infection = as.Date("2020-10-10"),
+    .before        = 2 # este campo es para especificar la posición en la que queremos colocar la fila
+											 # si no se especifica la fila se crea al final del Data Frame
+	)
+nrow(ebola_add_row) # output: 6610
+```
+
+## filter()
+
+Cuando ya tenemos seleccionadas las variables que utilizaremos para nuestros análisis, muchas veces vamos a querer realizar filtros sobre ellas, para eso se utiliza la función `filter()`.
+
+```{r}
+# Filtros en variables ----
+# Para filtrar hay que pasarle a filter() las condiciones
+ebola_limpia %>%
+	filter(
+		hospital == "Port Hospital" # Que la variable hospital sea igual a "Port Hospital"
+	) # output: ebola_limpia filtrada por los que tienen como hospital "Port Hospital"
+
+# Se pueden colocar múltiples condiciones separadas por comas
+ebola_limpia %>%
+	filter(
+		hospital == "Port Hospital",
+		gender == "m",
+	) # output: ebola_limpia filtrada por los que tienen como hospital "Port Hospital" y gender "m"
+
+# Se pueden colocar operadores booleanos
+ebola_limpia %>%
+	filter(
+		hospital == "Port Hospital" | # Que la variable hospital sea igual a "Port Hospital" OR (|)
+			hospital == "Central Hospital"
+	) # output: ebola_limpia filtrada por los que tienen como hospital "Port Hospital"
+
+# EJERCICIO: Del ejemplo anterior, en vez de utilizar OR realizar el filtro con %in%
+
+# EJERCICIO: Realice un filtro en ebola_limpia de pacientes del hospital St. Mark's Maternity Hospital (SMMH),
+#            que sean hombres y que sean mayores de edad.
+	
+
+```
+
+## drop_na()
+
+También podemos filtrar las filas con `NA` en alguna columna utilizando `drop_na()`.
+
+```{r}
+## drop_na() ----
+ebola_limpia %>%
+	# filtrar filas si hay NAs en case_id o en age_years
+	drop_na(
+		case_id, 
+		age_years
+	) # output: ebola_limpia filtrada por case_id y age_year donde no tengan NAs
+```
+
+## arrange()
+
+Algunas veces necesitamos que los datos estén ordenados dependiendo de una variable. Para eso se utiliza `arrange()`que recibe como parámetro la variable o variables por las que se desea ordenar.
+
+```{r}
+# arrange() ----
+ebola_limpia %>%
+	# ordenamos las filas de ebola_limpia con arrange() en base
+  # a las variables hospital y date_onset
+	arrange(
+		hospital,         # Variable de mayor prioridad para ordenar
+		desc(date_onset)  # desc() se utiliza cuando se quiere ordenar de manera descendente
+	)
+```
+
+## group_by()
+
+Al momento de hacer nuestros análisis es muy probable que queramos agrupar los datos dependiendo del valor de alguna variable. Por ejemplo saber la cantidad de pacientes con ebola agrupados por sexo y por hospital. Para realizar estas agrupaciones se utiliza `group_by()` que recibe como parámetro la variable a la que se quiere agrupar.
+
+```{r}
+# group_by() ----
+ebola_limpia %>%
+	# agrupamos con group_by()
+	group_by(
+		gender,   # agrupar por sexo
+		hospital  # agrupar por hospital
+	) %>%
+	# Se aplican funciones sobre los grupos
+	# tally() es una función que cuenta
+	tally() # output: las frecuencias de las ocurrencias de todas las combinaciones de gender y hospital
+```
+
+## summarise()
+
+A diferencia de `mutate()` que devuelve el Data Frame entero con la variable agregada o modificada, `summarise()` solo devuelve el resultado de lo que se le solicita. Esto es útil para no tener datos duplicados por grupos.
+
+```{r}
+# summarise() ----
+ebola_limpia %>%
+	# agrupamos con group_by()
+	group_by(
+		gender,   # agrupar por sexo
+		hospital  # agrupar por hospital
+	) %>%
+	# Generamos age_mean calculando el promedio de age_years
+	summarise(age_mean = mean(age_years, na.rm = TRUE)) # output: las medias de edad para las combinaciones de gender y hospital
+
+# EJERCICIO: Haga lo anterior con mutate en vez de summarise. ¿Nota la diferencia?
+```
+
+# Unir bases de datos
+
+Es muy común que para los análisis de bases de datos se utilicen múltiples fuentes de información. Usualmente es necesario **unir** múltiples bases de datos. Para unir dos bases de datos se utilizan variables que tienen en común las distintas bases de datos. Para esta sección estaremos utilizando la siguiente base de datos:
+
+[linelist_cleaned.rds](Manejo%20de%20datos%207058ded34cce44e5a14a21c6464ef75d/linelist_cleaned.rds)
+
+> La base de datos fue obtenida de: [https://github.com/appliedepi/epirhandbook_eng/raw/master/data/case_linelists/linelist_cleaned.rds](https://github.com/appliedepi/epirhandbook_eng/raw/master/data/case_linelists/linelist_cleaned.rds)
+> 
+
+La base de datos linelist_cleaned.rds es la versión limpia de la base de datos de ebola utilizada anteriormente. El formato .rds es un formato de objetos de R el cual permite guardar los tipos de dato de cada variable de un Data Frame de R.
+
+## Bases de datos
+
+Para los siguientes ejemplos haremos lo siguiente con la base de datos de ebola
+
+1. Haremos una base de datos miniatura que contendrá las columnas `case_id`, `date_onset`, y `hospital` de solo las primeras 10 filas.
+2. Tendremos una segunda base de datos  que tendrá información de los hospitales
+
+```{r}
+# Unir bases de Datos ----
+ebola = import("../linelist_cleaned.rds")
+## Bases de datos ----
+# Prepararemos los Data frames
+# DF mini de ebola
+ebola_mini = ebola %>%
+	select(case_id, date_onset, hospital) %>%
+	head(10) # head(n) es una función que devuelve las primeras n filas de un Data Frame
+ebola_mini # output: nuestro mini Data Frame con 10 filas y las columnas case_id, date_onset, hospital
+
+# DF con información de hospitales
+hospitales = data.frame(
+  hosp_name     = c("central hospital", "military", "military", "port", "St. Mark's", "ignace", "sisters"), # Nombre del hospital
+  catchment_pop = c(1950280, 40500, 10000, 50280, 12000, 5000, 4200), # Población de captación
+  level         = c("Tertiary", "Secondary", "Primary", "Secondary", "Secondary", "Primary", "Primary") # Nivel de atención
+)
+hospitales #output: nuestro Data Frame con 7 filas con las columnas hosp_name, catchment_pop, level
+
+# EJERCICIO: Que ven de interesante en hospitales$hosp_name
+```
+
+## Pre-procesamiento y limpieza de datos
+
+Lo primero que debemos hacer es detectar la variable por la que uniremos la base de datos. Las bases de datos tienen en común la variable del nombre del hospital (`ebola_mini$hospital` y `hospitales$hosp_name`).
+
+```{r}
+## Preprocesamiento ----
+# EJERCICIO: obtenga los valores únicos de hospital de ebola_mini
+
+# EJERCICIO: obtenga los valores únicos de hosp_name de hospitales
+```
+
+Con los ejercicios anteriores se puede notar que algunos hospitales no existen en ambos Data Frames o que algunos están escritos de manera distinta.  Para comenzar nuestra limpieza de datos estandarizaremos `hospitales` de `hospitales` para que coincidan con `hospitals` de `ebola_mini`.
+
+```{r}
+# EJERCICIO: Estandarizar hospitales de hospitales para que coincidan con hospitals de ebola_mini
+#            hint: recode() o case_when()
+```
+
+Si el ejercicio anterior fue resuelto correctamente, los nombres de hospitales entre ambos Data Frames ya deberían de estar alineados. 
+
+```{r}
+# Chequeo de que estén corregidos los nombres
+unique(hospitales$hosp_name) # output: Central Hospital, Military Hospital, Port Hospital, St. Mark's Maternity Hospital (SMMH), ignace, sisters
+```
+
+Tip: aveces es de conveniencia convertir todos los valores de la variable en común a mayúsculas o a minúsculas para hacer que coincidan, para eso se puede utilizar la función `toupper()` y `tolower()`.
+
+## Joins
+
+El paquete `dplyr` tiene distintas funciones para unir (*join*) bases de datos. Estas funciones se pueden utilizar de manera independiente o se pueden mandar en secuencia con `%>%` como ya hemos aprendido antes. La sintaxis de las distintas funciones para hacer *join* es la misma, para explicar la sintaxis de los *joins* utilizaremos la función `left_join()` para crear un Data Frame nuevo llamado `joined` que será la unión de dos Data Frames ficticios llamados `df1` y `df2`. Todas las funciones *join* reciben como argumento los Data Frames a unir y el argumento `by =` en el cual se especifica la variable/variables que se utilizará para unir ambos Data Frames.
+
+```r
+## Sintaxis de JOINS ----
+### Variable en comun con diferente nombre ----
+# Join basado en la columna ID del df1 e identificador del df2
+joined = left_join(df1, df2, by = c("ID" = "identificador"))
+
+### Variable en comun con mismo nombre ----
+# Join basado en la columna ID
+joined = left_join(df1, df2, by = "ID")
+
+### Multiples variables en comun ----
+# Join basado en las columnas nombre, apellido del df1 y primernombre, primerapellido del df2
+joined = left_join(df1, df2, by = c("nombre" = "primernombre", "apellido" = "primerapellido"))
+```
+
+### left_join() y right_join()
+
+Un `left_join()` o `right_join()` son usados para agregar información a un Data Frame. La información es agregada solo a las filas que ya existen en el Data Frame de referencia. Al usar estos *joins* el orden de los Data Frames es importante.
+
+- En un `left_join()`, el primer Data Frame es el de referencia (el de la izquierda)
+- En un `right_join()`, el segundo Data Frame es el de referencia (el de la derecha)
+
+Todas las filas del Data Frame de referencia se mantienen. La información del otro Data Frame se une al Data Frame de referencia solo si hay una coincidencia a través de la columna en común (`by`). Entonces:
+
+- Las filas del Data Frame secundario que no coinciden se eliminan.
+- Si hay muchas filas en el Data Frame de referencia que coinciden con una fila en el Data Frame secundario (muchos a uno), la información secundaria se agrega a cada fila del Data Frame referencia coincidente.
+- Si una fila en el Data Frame referencia coincide con varias filas en el Data Frame secundario (uno a muchos), se dan todas las combinaciones, lo que significa que se pueden agregar nuevas filas al Data Frame devuelto.
+
+![https://epirhandbook.com/en/images/left-join.gif](https://epirhandbook.com/en/images/left-join.gif)
+
+![https://epirhandbook.com/en/images/right-join.gif](https://epirhandbook.com/en/images/right-join.gif)
+
+```{r}
+## Left Join ----
+ebola_joined = left_join(ebola_mini, hospitales, by = c("hospital" = "hosp_name")) # Left join directo
+ebola_joined = ebola_mini %>%
+	left_join(hospitales, by = c("hospital" = "hosp_name")) # Left join en secuencia
+
+# EJERCICIO: Explorar ebola_joined y anotar cambios
+```
+
+- Se agregaron dos nuevas columnas, `catchment_pop` y `level`
+- Se conservan todas las filas originales del marco de datos de referencia `ebola_mini`
+- Las filas originales de `ebola_mini` para "Military Hospital" se duplican porque coincidían con dos filas en el Data Frame secundario, por lo que se devuelven ambas combinaciones
+- La columna del identificador de unión del Data Frame secundario (`hosp_name`) ha desaparecido porque es redundante con la columna del identificador en el Data Frame primario (`hospital`)
+- Cuando una fila del Data Frame referencia no coincide con ninguna fila del Data Frame secundaria (p. ej., cuando el `hospital` es "Other" o "Missing"), se agrega `NA` (en blanco) en las columnas del Data Frame secundario
+- Se eliminaron las filas en el Data Frame secundario que no coincidían con el Data Frame de referencia ("sisters" e "ignace")
+
+Tip: Para saber si utilizar `left_join()` o `right_join()` es importante preguntarse que filas se desean retener de que Data Frame y definir uno como referencia.
+
+```{r}
+## Right Join ----
+# EJERCICIO: crear ebola_joined utilizando right_join()
+```
+
+### full_join()
+
+El full_join() es el *join* más inclusivo de todos. Este devuelve las filas de ambos Data Frames. Si hay filas presentes en un Data Frame y no en el otro (donde no se encontró ninguna coincidencia), el Data Frame las incluirá y se volverá más largo. Los `NA` se utilizan para completar los espacios vacíos creados. El Data Frame de referencia es el que se escribe primero en el comando. El orden de los Data Frames no afectará qué registros devuelve el *join*, pero puede afectar el orden de las columnas resultantes, el orden de las filas y qué columnas de identificador se conservan.
+
+![https://epirhandbook.com/en/images/full-join.gif](https://epirhandbook.com/en/images/full-join.gif)
+
+```{r}
+## Full Join ----
+ebola_joined = full_join(ebola_mini, hospitales, by = c("hospital" = "hosp_name"))
+
+# EJERCICIO: Explorar ebola_joined y anotar cambios
+```
+
+- Se mantienen todas las filas de referencia (ebola_mini)
+- Las filas en el Data Frame secundaria que no coinciden con la línea de base se conservan ("ignace" y "sisters"), con valores en las columnas de referencia correspondientes `case_id` y `date_onset` rellenados con `NA`
+- Del mismo modo, las filas del Data Frame de referencia que no coinciden con el secundario ("Other" y "Missing") se conservan, con las columnas secundarias `catchment_pop` y `level` rellenadas con `NA`
+- En el caso de coincidencias de uno a muchos o de muchos a uno (por ejemplo, filas para "Military Hospital"), se devuelven todas las combinaciones posibles (alargando el Data Frame final)
+- Solo se conserva la columna del identificador del Data Frame de referencia (`hospital`)
+
+### inner_join()
+
+Un `inner_join()` es el *join* más restrictivo de los *joins*: solo devuelve filas con coincidencias en ambos Data Frames. Esto significa que la cantidad de filas del Data Frame de referencia puede reducirse. El orden de qué Data Frame es el de referencia (escrito primero en la función) no afectará qué filas se devuelven, pero sí afectará el orden de las columnas, el orden de las filas y que columnas de identificador se conservan.
+
+![https://epirhandbook.com/en/images/inner-join.gif](https://epirhandbook.com/en/images/inner-join.gif)
+
+```{r}
+## Inner Join ----
+ebola_joined = inner_join(ebola_mini, hospitales, by = c("hospital" = "hosp_name"))
+
+# EJERCICIO: Explorar ebola_joined y anotar cambios
+```
+
+- Se eliminan las filas de referencia que no coinciden con los datos secundarios (filas donde el `hospital` es "Other" o "Missing")
+- Del mismo modo, se eliminan las filas del Data Frame secundario que no coincidían con el Data Frame de referencia (filas donde `hosp_name` es "sisters" o "ignace")
+- Solo se conserva la columna del identificador del Data Frame de referencia (`hospital`)
+
+# Extras
+
+## Grupos de edad age_categories()
+
+En múltiples ocasiones en las que se analiza las edades de una muestra, nos interesa agrupar las observaciones en grupos de edad. Por ejemplo grupos de 5 o 10 años (0-0, 10-19…). Estos grupos de edad se podrían crear con `case_when()` pero también tenemos disponible la función `age_categories()`del paquete `epikit`que nos facilita este proceso.
+
+```{r}
+# Grupos de edad ----
+# EJERCICIO: Crear una variable en ebola que se llame age_group
+#            que represente el grupo de edade al que pertenece
+#            cada observación usando case_when()
+
+## age_categories() ----
+# Cargar paquete epikit
+p_load(epikit)
+
+ebola = ebola %>%
+	mutate(
+		# Creamos los grupos utilizando age_categories() en la variable age_group
+		age_group = age_categories(
+									age_years,    # Variable que contiene las edades
+									breakers = c(0, 5, 10, 15, 20,
+															 30, 40, 50, 60, 70) # Puntos de quiebre para los grupos
+								)
+	)
+# Posibles valores en age_group
+table(ebola$age_group, useNA = "always") # output: table con los grupos de edad creados anteriormente
+```
+
+## Semanas epidemiológicas incidence()
+
+Para algunos análisis epidemiológicos por fecha, es muy útil analizar por semanas en vez de por fechas puntuales. Para realizar analizar incidencias por semana epidemiológica se puede utilizar la funcione `incidence()` del paquete `incidence2`. Para realizar un análisis de incidencia debemos pasar como argumentos a `incidence()` los datos a utilizar, especificar la columna que contiene las fechas, especificar los intervalos de fecha que se quiere utilizar (diario, semanal, mensual…) y especificar si se quiere agrupar por alguna columna.
+
+```{r}
+# Semanas epidemiológicas ----
+## incidence() ----
+# Cargar paquete incidence2
+p_load(incidence2)
+# Crear objeto de incidencia
+incidencia = incidence(    # incidence() crea un objeto especial de tipo incidence2
+	x = ebola,               # Base de datos
+	date_index = date_onset, # Columna con fechas
+	interval = "week"        # Agrupar por semana
+)
+incidencia # output: date_index(fecha) count(cantidad de incidencias)
+
+# EJERCICIO: cree un resumen de incidencia
+
+# Los objetos incidence2 se pueden graficar fácilmente con
+# plot() pero en la siguiente sección veremos como hacer 
+# gráficas de una manera más elegante
+plot(incidencia)
+
+# Analizar incidencia por grupos de edad
+incidencia_edad = incidence(    # incidence() crea un objeto especial de tipo incidence2
+	x = ebola,               # Base de datos
+	date_index = date_onset, # Columna con fechas
+	interval = "week",       # Agrupar por semana
+	groups = age_group,      # Grupos por grupos de edad
+  na_as_group = TRUE       # Tomar en cuenta los NA en los grupos
+)
+plot(
+	incidencia_edad,      # Base de datos
+	fill = age_group      # Colorear en base a los grupos de edad
+)
+```
+
+En la siguiente sección exploraremos mejores opciones para hacer gráficas que las que ofrece la función base `plot()`.
+
+# Cheat sheet
+
+![canvas.png](Manejo%20de%20datos%207058ded34cce44e5a14a21c6464ef75d/canvas.png)
+
+![canvas1.png](Manejo%20de%20datos%207058ded34cce44e5a14a21c6464ef75d/canvas1.png)
+
+# Fuentes
+
+[https://epirhandbook.com/en/cleaning-data-and-core-functions.html](https://epirhandbook.com/en/cleaning-data-and-core-functions.html)
+
+[https://www.w3schools.com/r/r_intro.asp](https://www.w3schools.com/r/r_intro.asp)

@@ -1,0 +1,693 @@
+---
+title: "Visualización de Datos"
+Author: "Oliver Mazariegos"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_sections: false
+    toc: true
+    fig_width: 8
+    fig_height: 6
+    theme: cosmo
+    highlight: tango
+---
+
+```{css, echo=FALSE}
+pre code, pre, code {
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important;
+}
+```
+
+La mejor manera de entender una base de datos es con gráficas. Las gráficas no permiten visualizar la información contenida en una base de datos y nos ayuda a explicarla. R cuenta con funciones propias que nos permiten hacer gráficas de manera flexible. En esta sección empezaremos a graficar con las funciones básicas de R para comprender como funcionan las gráficas para luego poder crear gráficas mas elegantes utilizando el paquete `ggplot2`. `ggplot2` es el paquete más popular para la visualización de datos en R. 
+
+En esta sección utilizaremos la base de datos de ebola ([linelist_cleaned.rds](https://github.com/appliedepi/epirhandbook_eng/raw/master/data/case_linelists/linelist_cleaned.rds)) ya limpia utilizada en la [sección anterior](https://www.notion.so/Manejo-de-datos-f6f172578cb8414fb475af5d8bdb8a24).
+
+# Gráficas con plot()
+
+## Básicos
+
+En R la función `plot()` se utiliza de manera general para generar gráficos. La función `plot()` siempre nos pide un argumento `x` que correspond al eje X de una gráfica. El resto de argumentos de `plot()` son opcionales, pero es importante mencionar el argumento `y`, que representa al eje Y de la gráfica que se busca generar. Los argumentos `X` e `Y` deben ser vectores de la misma longitud, de lo contrario se obtendrá un error. Además de `plot()` tiene funciones específicas para ciertos tipos de gráficas como lo son `hist()` o `barplot()`. Algo poderoso de la función `plot()` es que genera el tipo de gráfica dependiendo del tipo de dato que son `x` e `y`. Las siguientes reglas son:
+
+| x | y | Gráfico |
+| --- | --- | --- |
+| Continuo | Continuo | Diagrama de dispersión (Scatterplot) |
+| Continuo | Discreto | Diagrama de dispersión, y coercionada a numérica |
+| Continuo | Ninguno | Diagrama de dispersión, por número de renglón |
+| Discreto | Continuo | Diagrama de caja (Box plot) |
+| Discreto | Discreto | Gráfico de mosaico (Diagrama de Kinneman) |
+| Discreto | Ninguno | Gráfica de barras |
+| Ninguno | Cualquiera | Error |
+
+```{r}
+# plot() ----
+plot(1,3) # output: Gráfica con un punto donde x = 1 y y = 3
+
+# Gráfica de múltiples puntos
+plot(c(1,8),c(3,10))
+# La gráfica anterior es igual a
+x = c(1,8)
+y = c(3, 10)
+plot(x, y)
+
+# Para definir el color de los puntos se utiliza col
+plot(c(1:10), col = "red")
+
+# Para cambiar el titulo se utiliza el argumento main
+plot(c(1:10), col = "red", main = "Mi grafica")
+
+# Para cambiar la leyenda de los ejes se usa xlab e ylab
+plot(c(1:10), col = "red", main = "Mi grafica", xlab = "El eje x", ylab = "El eje y")
+
+# Para cambiar el tamaño de los puntos se utiliza cex
+plot(c(1:10), col = "red", main = "Mi grafica", xlab = "El eje x", ylab = "El eje y", cex = 3)
+
+# Para cambiar la figura del punto se utiliza pch 
+plot(c(1:10), col = "red", main = "Mi grafica", xlab = "El eje x", ylab = "El eje y", cex = 3, pch = 9)
+```
+
+- Valores para el argumento pch
+    
+    ![r_plot_pch2.png](Visualizacio%CC%81n%20de%20Datos%206b07a586fd754a3aa645d5d6d670ee3c/r_plot_pch2.png)
+    
+
+## Gráficos de líneas
+
+```{r}
+## Gráficos de línea ----
+# El argumento type especifica el tipo de gráfico que queremos
+plot(c(1:10), type = "l") # Para conocer que tipos existen correr ?plot
+
+# El argumento de color sigue siendo el mismo
+plot(c(1:10), type = "l", col = "blue")
+
+# El grosor de la línea se edita con lwd
+plot(c(1:10), type = "l", col = "blue", lwd = 2)
+
+# Se pueden agregar múltiples líneas con lines()
+linea1 = c(1:10)
+linea2 = c(10:1)
+plot(linea1, type = "l", col = "blue", lwd = 2)
+lines(linea2, type = "l", col = "red", lwd = 2)
+
+# Para cambiar el estilo de la línea se utiliza lty
+plot(c(1:10), type = "l", col = "blue", lwd = 2, lty = 3)
+```
+
+- Valores para el argumento lty
+    - `0` elimina la línea
+    - `1` muestra una línea sólida
+    - `2` muestra una línea discontinua
+    - `3` muestra una línea de puntos
+    - `4` muestra una línea de "puntos discontinuos"
+    - `5` muestra una línea "larga discontinua"
+    - `6` muestra una línea de "dos puntos"
+
+## Gráficos de Dispersión
+
+```{r}
+## Gráficos de dispersión ----
+x = c(5,7,8,7,2,2,9,4,11,12,9,6)
+y = c(99,86,87,88,111,103,87,94,78,77,85,86)
+# Es importante que los vectores x e y sean de la misma longitud
+plot(x, y)
+
+# Agreguemos títulos para que se comprendan los datos
+plot(x, y, main="Precios promedio de carros", xlab="Edad del Carro", ylab="Precio (miles de dolares)")
+
+# Supongamos que comparamos los precios con los de otro país
+# Al igual que con las gráficas de líneas podemos agregar puntos con points()
+x2 <- c(2,2,8,1,15,8,12,9,7,3,11,4,7,14,12)
+y2 <- c(100,105,84,105,90,99,90,95,94,100,79,112,91,80,85)
+plot(x, y, main="Precios promedio de carros", xlab="Edad del Carro", ylab="Precio (miles de dolares)")
+points(x2, y2, col = "red")
+```
+
+Es importante mencionar que `plot()` genera errores siempre que encuentra `NA` en alguno de los vectores. Por lo que los vectores de entrada deben ser pre-procesados en caso contengan `NA` en alguna observación.
+
+# Histogramas con hist()
+
+Los histogramas nos permiten observar la distribución de datos numéricos usando barras. Cada barra representa la frecuencia que se observaron datos en un rango determinado. En R para crear un histograma se utiliza la función `hist()`, a la que se le debe pasar como parámetro `x` un vector numérico, los demás argumentos son opcionales y se pueden consultar con `?hist`.
+
+```{r}
+# Histogramas ----
+library(pacman)
+p_load(rio)
+# Cargamos la base de datos de ebola
+ebola = import("../linelist_cleaned.rds")
+# Histograma de edad
+hist(ebola$age)
+# Como en plot, los títulos se cambian con main, xlab e ylab
+hist(ebola$age, main = "Histograma de Edad", xlab = "Edad", ylab = "Frecuencia")
+# Tambien se puede definir el color del histograma con el argumento col
+hist(ebola$age, 
+			main = "Histograma de Edad", xlab = "Edad", ylab = "Frecuencia",
+			col = "purple")
+
+# EJERCICIO: crear un histograma de otra variables de ebola con títulos y color hexagesimal
+#            Hint: el color blanco en hexagesimal es #FFFFFF
+
+```
+
+# Gráficas de barras
+
+El gráfico de barras es de los mas conocidos y utilizado de todos. Este gráfico nos muestra la frecuencia con la que se observan los datos de una variable discreta, con una barra para cada categoría de esta variables.
+
+## plot()
+
+La función `plot()` puede generar gráficos de barra si el argumento `x` es un vector de tipo `character` o `factor` sin especificar el argumento `y`.
+
+```{r}
+# Gráfico de barras ----
+## plot() ----
+# Gráfico de barras de grupos de edad
+plot(ebola$age_cat)
+# EJERCICIO: personalice el gráfico con títulos
+```
+
+## barplot()
+
+Como alternativa a `plot()` para generar gráficas de barras podemos utilizar la función `barplot()`. La función `barplot()` como argumento recibe una matriz con los datos a graficar. Esta matriz se puede generar utilizando la función `table()`. Si a la función `table()` solo le especificamos solo una variable, esta nos devuelve un conteo, si agregamos más de una, nos genera una tabla de contingencia.
+
+```{r}
+## barplot() ----
+# Generación de una tabla de frecuencias
+age_cat_frecuencias = table(ebola$age_cat)
+age_cat_frecuencias # output: Tabla de frecuencias de grupos de edad
+barplot(age_cat_frecuencias)
+
+# Generación de una tabla de contingencia
+age_cat_gender = table(ebola$gender, ebola$age_cat)
+age_cat_gender # output: Tabla de contingencia para grupos de edad por sexo
+barplot(age_cat_gender)
+# Para agregar la leyenda se utiliza legend()
+barplot(age_cat_gender, col = c("pink", "blue"))
+legend(x = "topright",            # Posición de la leyenda
+				legend = c("f", "m"),     # Clases
+				fill = c("pink", "blue"), # Colores
+				title = "Sexo")         # Genero
+```
+
+Es importante mencionar que el orden de los colores afecta el resultado de la gráfica. El orden debe estar relacionado al orden en el que salen en la tabla de contingencia.
+
+# Diagramas de caja
+
+Los diagramas de caja o de caja y bigote son gráficos que muestran la distribución de una variable usando cuartiles. Este tipo de gráficos dibuja un rectángulo cruzado por una línea recta horizontal. La línea recta representa la mediana (el segundo cuartil), la base de la caja el primer cuartil y su parte superior el tercer cuartil, el rango entre estos dos se conoce como intercuartílico (RIC). A los extremos de la caja salen dos líneas. Una que llega hasta el mínimo valor de los datos o hasta el primer cuartil menos 1.5 RIC; y otro que llega al valor máximo de los datos o hasta 1.5 RIC. Las observaciones que están fuera de la caja y de los bigotes se representan con puntos y se les conoce como puntos atípicos. Con **`plot()`** se pueden generar gráficos de caja cuando `x` es de tipo `character` o `factor` e `y` es `numeric` . Pero utilizaremos la función `boxplot()` en el siguiente ejemplo. La función `boxplot()` necesita dos argumentos:
+
+- `formula`: Las formulas tienen el formato `y ~ x`, donde `y` es el nombre de la variable continua a graficar, y la `x` la variable por la cual se va a graficar.
+- `data`: Es el Data Frame del que utilizaremos las variables
+
+```{r}
+# Gráficos de Caja ----
+# Boxplot simple de edad
+boxplot(ebola$age)
+
+# Boxplot de edad por sexo
+boxplot(formula = age ~ gender, data = ebola)
+```
+
+# ggplot2
+
+El paquete `ggplot2` es el más utilizado para graficar en R. La función `ggplot()` inicializa un objeto ggplot. Esta función puede usarse para declarar el Data Frame que se utilizará para el gráfico y para especificar estética que se utilizara de manera global (como las variables a utilizar). Para agregar componentes a la gráfica se utiliza el símbolo `+` en la misma manera que se utilizaba `%>%` con `dplyr`. La forma más básica de generar una gráfica es `ggplot(df, aes(x, y))`.
+
+```{r}
+p_load(dplyr, tidyr, ggplot2)
+# Previa limpieza de ebola
+ebola = ebola %>%
+  mutate(
+    gender_disp = case_when(gender == "m" ~ "Male",        # m a Male 
+                            gender == "f" ~ "Female",      # f a Female,
+                            is.na(gender) ~ "Unknown"),    # NA a Unknown
+    
+    outcome_disp = replace_na(outcome, "Unknown")          # reemplazar NA en outcome con "Unknown"
+  )
+```
+```r
+# ggplot2 ----
+## Estructura de ejemplo ----
+ggplot(data = mis_datos) +               # Utilizar Data Frame "mis_datos" y crea un lienzo en blanco
+	geom_point(                            # Agregar una capa de puntos
+		mapping = aes(x = col1, y = col2),   # "mapear" las columnas a los ejes
+		color = "red"                        # Otras especificaciones del geom
+	) +
+	labs() +                               # Aca se agregan los titulos
+	theme()                                # Aca se puede cambiar el color, fuente y tamaño de los titulos y otros elementos
+```
+
+## Geoms
+
+Al ejecutar `ggplot(ebola)` estamos creando un lienzo en blanco para ebola, ahora debemos crear figuras (geoms) a partir de nuestros datos (barras, puntos, cajas). Esto se logra agregando una capa "geom" a nuestro lienzo en blanco. Existen varias funciones en `ggplot2` que crean "geoms". Estas funciones comienzan con `geom_` y luego especifican el tipo de "geom" que es `geom_XXXX()`. En `ggplot2` hay más de 40 "geoms", pero las más comunes son:
+
+- `geom_histogram()`: Histogramas
+- `geom_bar()` o `geom_col()`: Gráficas de barras
+- `geom_boxplot()`: Gráficos de caja
+- `geom_point()`: Gráficos de puntos o dispersión
+- `geom_line()` o `geom_path()`: Gráficos de líneas
+- `geom_smooth()`: Gráficos de líneas de tendencia
+
+## Mapeo de datos
+
+A la mayoría de funciones "geom" se les debe especificar que usar para crear las figuras, por lo que hay que especificar como deben *mapear (asignar) las columnas de los datos* a los componentes del gráfico como ejes, colores, formas, tamaños, etc. El *mapeo* sucede con el argumento `mapping =`. El mapeo que se asigna en `mapping` debe estar envuelto en `aes()` de la siguiente forma: `mapping = aes(x = col1, y = col2)`. Luego de un correcto mapeo se puede agregar un "geom" que dibuje en el lienzo.
+
+```{r}
+## Mapeo de datos ----
+# Gráfico de dispersion de edad y peso
+ggplot(data = ebola, mapping = aes(x = age, y = wt_kg)) +   # Se crea un lienzo para los datos de ebola y se mapea a x la edad e y el peso en kg
+	geom_point()                                              # Se crea un geom_point que edera el mapeo de ggplot()
+
+# EJERCICIO: Con ggplot haga un histograma de la edad
+
+# El mapeo se puede hacer de múltiples formas y dependerá de la aplicación
+# Los siguientes comandos generan la misma gráfica
+ggplot(data = ebola, mapping = aes(x = age)) +
+	geom_histogram()
+
+ggplot(data = ebola)+
+  geom_histogram(mapping = aes(x = age))
+
+ggplot()+
+  geom_histogram(data = ebola, mapping = aes(x = age))
+
+```
+
+## Estéticas del Gráfico
+
+En `ggplot` la estética se refiere a las propiedades visuales de *los datos graficados.* Eso significa que la estética se refiere a *los datos que están siendo graficados en geoms* no las estéticas de su alrededor como títulos, ejes, color de fondo, etc. Estas otras estéticas se ajustan en el parámetro `theme()`. No todos los geoms tienen las mismas opciones de estéticas, pero muchos se pueden utilizar en todos los geoms. Algunos ejemplos de los más comunes son:
+
+- `shape =` Mostrar un punto con `geom_point()` como punto, estrella, triángulo o cuadrado…
+- `size =` Tamaño (por ejemplo, grosor de línea, tamaño de punto)
+- `alpha =` Transparencia (1 = opaco, 0 = invisible)
+- `binwidth =` Ancho de los contenedores de histograma
+- `width =` Ancho de las columnas del "gráfico de barras”
+- `linetype =` Tipo de línea (por ejemplo, sólida, discontinua, punteada)
+- `fill =` El color interior (por ejemplo, de una barra o diagrama de caja)
+- `color =` La línea exterior de una barra, diagrama de caja, etc., o el color del punto si se usa `geom_point()`
+
+```{r}
+### Estética ----
+# histograma de edad
+ggplot(data = ebola, mapping = aes(x = age))+       # mapea datos a los ejes
+  geom_histogram(              # hace un histograma
+    binwidth = 7,                # Ancho de los contenedores de histograma
+    color = "red",               # Color de la línea del contenedor
+    fill = "blue",               # Color interior del contenedor
+    alpha = 0.1)                 # Transparencia del contenedor
+```
+
+### Valores estáticos y dinámicos
+
+Varias estéticas se pueden asignar de dos maneras. Por ejemplo con `color`:
+
+1. De manera estática sobre todos los puntos `color = "blue"`
+2. Asignada a una columna haciendo que cada observación dependa de esta `color = hospital`
+
+```{r}
+#### Valores estáticos ----
+# Gráfico de dispersión de edad y peso
+ggplot(data = ebola, mapping = aes(x = age, y = wt_kg))+  # Se mapean las columnas a los ejes
+  geom_point(color = "darkgreen", size = 0.5, alpha = 0.2)         # Esteticas estáticas
+
+#### Valores dinámicos ----
+# Gráfico de dispersión de edad y peso con color dinámico
+ggplot(data = ebola,   # Se define la base de daots
+       mapping = aes(     # Mapeo de estética
+         x = age,           # eje x a age            
+         y = wt_kg,         # eje y a weight
+         color = age)       # color a age
+       )+     
+  geom_point()
+
+# Gráfico de dispersión de edad y peso con color y tamaño dinámico
+ggplot(data = ebola,     # Se define la base de daots
+       mapping = aes(
+         x = age,         # eje x a age            
+         y = wt_kg,       # eje y a weight
+         color = age,     # color a age
+				 size = age,      # tamaño a age
+       ))+     
+  geom_point(
+		shape = "diamond",    # Que los puntos se vean como diamantes
+		alpha = 0.3           # Transparencia del punto al 30%
+	)
+```
+
+Es importante que noten como se ve de distinto el orden del código en el gráfico de los valores estáticos versus los valores dinámicos. En el primero escribo todo en una sola línea y en el segundo en múltiples líneas. Lo anterior se hace para tener un orden en las estéticas las cuales se convierten cada vez más complejas dependiendo de nuestras necesidades, por ejemplo cuando utilizamos multiples geoms. 
+
+```{r}
+# Importancia del orden
+ggplot(data = ebola, 
+				mapping = aes(
+					x = age, 
+					y = wt_kg,
+					color = age_years)
+				)+                     # Se mapean las columnas a los ejes
+  geom_point(size = 1,         # Tamaño de los puntos
+							alpha = 0.2) +   # Transparencia de los puntos
+	geom_smooth(                 # Agregar línea de tendencia
+		method = "lm",             # Con el método lineal
+		size = 2)                  # Tamaño de la línea
+```
+
+## Agrupaciones
+
+Ya vimos que con la opción `color` podemos agrupar los datos en vase a otra variable. Esto también se puede lograr utilizando el parámetro `fill` . Por ejemplo, si necesitamos un gráfico de dispersión de edad y peso agrupados por sexo se haría de la siguiente manera.
+
+```{r}
+## Agrupación de valores ----
+# Gráfica de dispersión de edad y peso por sexo
+ggplot(data = ebola,
+       mapping = aes(x = age, y = wt_kg, color = gender))+
+  geom_point(alpha = 0.5)
+```
+
+## Facetas
+
+Las facetas nos sirven para dividir una gráfica en múltiples paneles. Donde se crea un panel (faceta) por agrupación. La misma gráfica se genera multiples veces para cada uno de los sub-grupos de una misma base de datos. Las facetas se pueden generar utilizando:
+
+1. `facet_wrap()`:  Para mostrar un panel diferente para cada nivel de una sola variable. Por ejemplo, nuestra gráfica de dispersión de edad y peso por genero. Las facetas se ordenaran por orden alfabético a menos que la variable sea un factor con un orden en específico. Para especificar la variable se utiliza la sintaxis `facet_wrap(~Columna)`
+    1. Se puede utilizar los argumentos `nrow` y `ncol` para definir el diseño de nuestras facetas
+2. `facet_grid()`: Esto se utiliza cuado queremos utilizar una segunda variable en el arreglo de facetas. Cada faceta representara la intersección de las dos variables seleccionadas. Por ejemplo el gráfico de dispersion de edad y peso por sexo y hospital. Para especificar las variables se utiliza la sintaxis `facet_grid(filas ~ columnas)`
+
+```{r}
+## Facetas ----
+# Gráfica de dispersión de edad y peso en facetas por sexo
+ggplot(data = ebola,
+       mapping = aes(x = age, y = wt_kg))+
+  geom_point(alpha = 0.5) +
+	facet_wrap(~gender)
+
+# Gráfica de dispersión de edad y peso en facetas por sexo y por hospital
+ggplot(data = ebola,
+       mapping = aes(x = age, y = wt_kg))+
+  geom_point(alpha = 0.5) +
+	facet_grid(hospital~gender)
+```
+
+## Guardar gráficas
+
+Para poder utilizar una gráfica en conjunto con otras gráficas, la gráfica puede ser guardada en una variable. Esto es util cuando se le quieren agregar capas distintas a la misma gráfica. Utilizaremos nuestra gráfica de dispersión anterior como ejemplo.
+
+```{r}
+## Guardar gráficas ----
+# Gráfico de dispersión de años y peso
+dispersion_edad_peso = ggplot(data = ebola, mapping = aes(x = age_years, y = wt_kg, color = age_years))+
+  geom_point(alpha = 0.1)
+dispersion_edad_peso
+
+# Agregar línea de tendencia
+dispersion_edad_peso +
+		geom_smooth(                 # Agregar línea de tendencia
+		method = "lm",             # Con el método lineal
+		size = 2)
+
+# Agregar línea vertical
+dispersion_edad_peso +
+	geom_vline(xintercept = 50)
+```
+
+## Exportar gráficas
+
+Muchas veces necesitaremos las gráficas generadas por `ggplot` fuera de R. Para eso podemos exportar las gráficas en formatos como png, pdf, jpeg, tiff, bmp, svg y muchos más especificando la extensión en el nombre del archivo. Para lograrlo se utiliza la función `ggsave()` de la siguiente forma `ggsave("el_nombre_del_archivo.png", nombre_de_grafica)`. Es importante que la extensión (png) puede cambiarse en función del formato que se necesita. Y el nombre_de_grafica depende de la gráfica que usted desea exportar, también puede usar `last_plot()` para utilizar la última gráfica generada.
+
+## Etiquetas
+
+Seguramente a las gráficas que generemos les vamos a querer cambiar las etiquetas. Esto se puede hacer de manera sencilla utilizando `labs()`. Dentro de `labs()` uno puede proveer lo siguientes argumentos.
+
+- `x =` y `y =` : Los títulos (etiquetas) de los ejes x e y
+- `title =` El titulo principal
+- `subtitle =` El subtitulo en un tamaño más pequeño y colocado debajo del título
+- `caption =` Texto al pie de la gráfica, en la parte inferior derecha por defecto
+
+```{r}
+## Etiquetas ----
+# EJERCICIO: agréguele etiquetas a la gráfica dispersion_edad_peso
+#            Tip: Para cambiar el titulo de la leyenda utilice color
+```
+
+## Temas
+
+Hay ciertas partes del diseño de las gráficas que no están relacionadas a los datos que están siendo graficados, para esto se utiliza la función `theme()`. Por ejemplo, el color de fondo de la gráfica, la presencia o ausencia de líneas de guía, o fuentes, color, tamaño, alineación del texto. Estos aspecto se pueden ajustar de dos maneras:
+
+- Utilizando temas predefinidos. Algunos ejemplos son `theme_classic()`, `theme_dark()`, `theme_light()`, `theme_grey()`, `theme_bw()`.
+- Ajustar cada aspecto dentro de la función `theme()`.
+
+### Temas completos
+
+Los temas completos ya vienen preestablecidos y solo se necesita llamarlos para que estos se apliquen en el gráfico
+
+```{r}
+## Temas ----
+dispersion_edad_peso = ggplot(data = ebola, mapping = aes(x = age_years, y = wt_kg, color = age_years))+
+  geom_point(alpha = 0.1) +
+	labs(
+    title = "Distribución de edad y peso",
+    subtitle = "Brote ficticio de ébola, 2014",
+    x = "Edad en años",
+    y = "Peso en kilos",
+    color = "Edad",
+    caption = "Datos a la fecha del 10-01-2020")
+### Temas completos ----
+dispersion_edad_peso +
+	labs(title = "Tema clasico") +
+	theme_classic()
+
+dispersion_edad_peso +
+	labs(title = "Tema bw") +
+	theme_bw()
+
+dispersion_edad_peso +
+	labs(title = "Tema minimal") +
+	theme_minimal()
+
+dispersion_edad_peso +
+	labs(title = "Tema gris") +
+	theme_gray()
+```
+
+### Modificar temas
+
+Si uno busca editar cada aspecto dentro de la función `theme()` recomiendo que se utilice un tema predefinido como base. Existen demasiados argumentos que se pueden editar de un tema, no los exploraremos todos pero el lado positivo es que la sintaxis entre ellos es muy similar. La sintaxis es la siguiente:
+
+1. Dentro de `theme()` se escribe el nombre del elemento del gráfico que se desea modificar, por ejemplo `plot.title =`
+2. Al argumento (`plot.title =` en este ejemplo) se debe proveer un `element_()`
+    1. La mayoría de veces se usa `element_text()` pero otras veces se utiliza `element_rect()` para el color de fondo del lienzo o `element_blank()` para eliminar objetos del gráfico.
+3. Dentro de `element_()` se escribe la asignación al argumento que queremos editar.
+
+```{r}
+### Modificar temas ----
+dispersion_edad_peso +
+	theme_classic() +                              # Tema base
+  theme(
+		legend.position = "bottom",                   # Mover legenda hacia abajo
+		plot.title = element_text(size = 30),         # Tamaño del título
+		plot.caption = element_text(hjust = 0),       # Alinear a la izquierda el caption
+		plot.subtitle = element_text(face = "italic"),# Subtitulo en itálica
+		axis.text.x = element_text(color = "red", size = 15, angle = 90), # Ajustar el texto del eje x
+		axis.text.y = element_text(size = 15),        # Ajustar el texto del eje y
+		axis.title = element_text(size = 20)          # Ajustar el titulo de ambos ejes
+	)
+```
+
+Algunos de los argumentos modificados en `theme()` están en la tabla siguiente. Notara algunos patrones al igual que el sufijo `.x` o `.y` para especificar alguno de los ejes.
+
+| Argumento de theme() | Que ajusta |
+| --- | --- |
+| plot.title = element_text() | El título |
+| plot.subtitle = element_text() | El subtítulo |
+| plot.caption = element_text() | Texto al pie de la gráfica (familia, face, color, size, angle, vjust, hjust…) |
+| axis.title = element_text() | Titulo de ambos ejes (size, face, angle, color…) |
+| axis.title.x = element_text() | Título del eje x (usar .y para el eje y) |
+| axis.text = element_text() | Texto de ambos ejes |
+| axis.text.x = element_text() | Texto del eje x (usar .y para el eje y) |
+| axis.ticks = element_blank() | Eliminar marcas de eje |
+| axis.line = element_line() | Líneas de los ejes (color, size, linetype: solid dashed dotted etc) |
+| strip.text = element_text() | Texto de las facetas (color, face, size, angle…) |
+| strip.background = element_rect() | Fondo de las facetas (fill, color, size…) |
+
+## Histogramas
+
+Los histogramas ya los introdujimos anteriormente pero vale la pena expandir sus capacidades y como sus parámetros. Los dos más utilizados son `bins =` el cual es el numero de contenedores (barras) que habrá en el histograma y `binwidth =` que es el ancho de los contenedores (barras).
+
+ 
+
+```{r}
+## Histogramas ----
+# A) Histograma normal
+ggplot(data = ebola, aes(x = age))+  
+  geom_histogram()+
+  labs(title = "A) Histograma por defecto (30 bins)")
+
+# B) Más barras
+ggplot(data = ebola, aes(x = age))+  
+  geom_histogram(bins = 50)+
+  labs(title = "B) Configurado a 50 bins")
+
+# C) Menos barras
+ggplot(data = ebola, aes(x = age))+  
+  geom_histogram(bins = 5)+
+  labs(title = "C) Configurado a 5 bins")
+
+# D) Mas barras
+ggplot(data = ebola, aes(x = age))+ 
+  geom_histogram(binwidth = 1)+
+  labs(title = "D) binwidth de 1")
+```
+
+Para suavizar las proporciones podemos utilizar `geom_density()`:
+
+```{r}
+# Frecuencia suavizada
+ggplot(data = ebola, mapping = aes(x = age)) +
+  geom_density(size = 2, alpha = 0.2)+
+  labs(title = "Densidad Proporcional")
+
+# Frecuencia suavizada apilada
+ggplot(data = ebola, mapping = aes(x = age, fill = gender)) +    # Colores por sexo
+  geom_density(size = 2, alpha = 0.2, position = "stack")+          # position = stack hace que se apilen
+  labs(title = "Densidad Proporcional Apilada")
+```
+
+## Boxplots
+
+Los boxplots funcionan de una forma curiosa a diferencia del resto de geoms. Usualmente para cualquier geom uno especifica los ejes x y/o y dentro de `aes()`. Para los boxplots se define con mayor prioridad el eje y. Si se desea realizar boxplots por varios grupos, estos grupos deben estar especificados en el eje x. Veámoslo con un ejemplo:
+
+```{r}
+## Boxplots ----
+# A) Boxplot simple
+ggplot(data = ebola)+  
+  geom_boxplot(mapping = aes(y = age))+   # se define solo y
+  labs(title = "A) Boxplot simple")
+
+# B) Boxplot por grupos
+ggplot(data = ebola, mapping = aes(y = age, x = gender, fill = gender)) + 
+  geom_boxplot()+                     
+  theme(legend.position = "none")+   # remover la leyenda (redundante)
+  labs(title = "B) Boxplot agrupado por genero")
+```
+
+## Barplot
+
+Para hacer gráficas de barras con `ggplot` se utiliza `geom_bar()`. Para las gráficas de barras usualmente necesitaremos una variable de tipo `character` o `factor`. De esta manera, `geom_bar()` ara la cuenta por ella sola. Otro acercamiento es generar las tablas primero (por ejemplo utilizando `dplyr`) incluyendo el argumento `stat = "identity"`.
+
+```{r}
+## Barplots ----
+# De manera directa
+## Barras verticales
+ggplot(data = ebola, aes(x = hospital)) + geom_bar()
+## Barras horizontales
+ggplot(data = ebola, aes(y = hospital)) + geom_bar()
+
+# Preparando los datos
+frecuencias_hospitales = ebola %>%
+	group_by(hospital) %>%
+	tally()
+frecuencias_hospitales # output: dataframe con "hospitals" y "n"
+
+ggplot(frecuencias_hospitales, aes(x = hospital, y = n)) + 
+	geom_bar(stat = "identity")
+
+# Agrupando por variables
+ggplot(data = ebola, aes(y = hospital, fill = outcome)) + geom_bar()
+```
+
+# Pirámides demográficas
+
+Para muchos análisis necesitaremos analizar como se distribuye una variable en relación a grupos de edad y sexo. Para hacer una gráfica de este estilo lo podríamos lograr con`ggplot` utilizando un `geom_bar()` . En esta sección te enseñare una versión más sencilla utilizando la función `age_pyramid()` del paquete `apyramid`. Sus argumentos más comunes son:
+
+- `data =` : se específica el Data Frame que se utilizará
+- `age_group =` : se especifica el nombre de la variable con los grupos de edad (entre comillas) (este es el eje y)
+- The `split_by =` : se especifica sobre que variable se busca dividir `age_group` (el eje x)
+
+```{r}
+# Pirámides demográficas ----
+# Cargamos el paquete
+p_load(apyramid)
+# Gráfica de pirámide demográfica
+age_pyramid(data = ebola,             # Data Frame ebola
+             age_group = "age_cat5",  # Grupos de edad cada 5 años
+             split_by = "gender")     # Dividido por sexo
+
+# Pirámide demográfica agrupada por hospital
+age_pyramid(data = ebola,             # Data Frame ebola
+             age_group = "age_cat5",  # Grupos de edad cada 5 años
+             split_by = "gender",     # Dividido por sexo
+						 stack_by = "hospital")  # Agrupada por hospital
+
+# Pirámide demográfica personalizada
+age_pyramid(
+  data = ebola,
+  age_group = "age_cat5",
+  split_by = "gender",
+  proportional = TRUE,              # Mostrar proporción en vez de cantidad
+  show_midpoint = FALSE,            # remover la linea de punto medio
+  ) +                 
+  theme_minimal()+                               # Tema de ggplot
+  scale_fill_manual(                             # Especificar color y etiquetas
+    values = c("orange", "purple"),              
+    labels = c("m" = "Masculino", "f" = "Femenino"))+
+  labs(y = "Porcentaje de casos",              # Notar que los títulos de los ejes estan cambiados
+       x = "Grupos de edad",                          
+       fill = "Sexo", 
+       caption = "Este es el caption",
+       title = "Casos de Ebola por Grupos de Edad",
+       subtitle = "Brote Ficticio")+
+  theme(
+    legend.position = "bottom",                          # Posición de la leyenda
+    axis.text = element_text(size = 10, face = "bold"),  # fuentes y tamaños de texto
+    axis.title = element_text(size = 12, face = "bold"))
+```
+
+# Curvas epidemiológicas
+
+En la sección anterior aprendimos a calcular la incidencia de casos por semanas epidemiológica utilizando `incidence2`. Los objetos de tipo `incidence` se pueden graficar con la función base `plot()`. Pero podemos tener más flexibilidad con los gráficos si utilizamos `ggplot`. El problema es que al intentar graficar con `ggplot` un objeto de tipo `incidence` nos podemos encontrar con muchos problemas e inconsistencias. Por lo que antes de graficarlo debemos convertirlo nuevamente a un `data.frame`.
+
+```{r}
+# Curvas Epidemiológicas ----
+p_load(incidence2)
+# Gráfica estándar
+incidencia_edad = incidence(    # incidence() crea un objeto especial de tipo incidence2
+	x = ebola,               # Base de datos
+	date_index = date_onset, # Columna con fechas
+	interval = "week",       # Agrupar por semana
+	groups = hospital,       # Grupos por hospital
+  na_as_group = TRUE,      # Tomar en cuenta los NA en los grupos
+)
+plot(incidencia_edad)
+plot(incidencia_edad, fill = hospital)
+
+# Preparación de datos
+# Analizar incidencia por hospital
+incidencia_edad = incidence(    # incidence() crea un objeto especial de tipo incidence2
+	x = ebola,               # Base de datos
+	date_index = date_onset, # Columna con fechas
+	interval = "week",       # Agrupar por semana
+	groups = hospital,       # Grupos por hospital
+  na_as_group = TRUE,      # Tomar en cuenta los NA en los grupos
+) %>% 
+mutate(date_index = as.Date(date_index)) %>%  # Convertir a formato Date la variable de fecha
+as.data.frame(.)                              # Convertir a formato data.frame la tabla
+
+# Curva Epidemiológica
+ggplot(incidencia_edad, aes(x=date_index, y=count, fill=hospital)) +
+        geom_bar(stat="identity", color = 'black') +
+        labs(x="Semana epidemiológica", y="No. de Casos", title="Casos de Ebola")
+```
+
+Si se quiere utilizar la función base `plot()` para graficar los objetos `incidence` se pueden utilizar los siguientes argumentos:
+
+| Argument | Description | Examples |
+| --- | --- | --- |
+| fill = | Color de la barra. Ya sea un nombre de color o un nombre de columna previamente especificado para groups = en la función incidence()  | fill = "red", o fill = hospital |
+| color = | Color alrededor de cada barra, o alrededor de cada grupo dentro de una barra | color = "white" |
+| legend = | Ubicación de la leyenda | puede ser “bottom”, “top”, “left”, “right”, o “none” |
+| alpha = | Transparencia de barras/cajas | 1 es opaco y 0 es transparente |
+| width = | Valor entre 0 y 1 que indica el tamaño relativo de las barras a su intervalo de tiempo | width = .7 |
+| show_cases = | Lógico; si es VERDADERO, cada caso se muestra como un cuadro. Se muestra mejor en brotes más pequeños. | show_cases = TRUE |
+
+# Cheat Sheet
+
+![Screen Shot 2022-08-05 at 15.48.05.png](Visualizacio%CC%81n%20de%20Datos%206b07a586fd754a3aa645d5d6d670ee3c/Screen_Shot_2022-08-05_at_15.48.05.png)
+
+![Screen Shot 2022-08-05 at 15.48.17.png](Visualizacio%CC%81n%20de%20Datos%206b07a586fd754a3aa645d5d6d670ee3c/Screen_Shot_2022-08-05_at_15.48.17.png)
